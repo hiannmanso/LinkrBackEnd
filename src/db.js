@@ -5,8 +5,7 @@ import chalk from 'chalk'
 dotenv.config()
 
 const { Pool } = pg
-
-const databaseConfig = {
+const configDatabase = {
 	connectionString: process.env.DATABASE_URL,
 }
 
@@ -15,7 +14,7 @@ if (process.env.MODE === 'PROD') {
 		rejectUnauthorized: false,
 	}
 }
-console.log(chalk.bold.blue(`Connected to Postgres database`))
-const db = new Pool(databaseConfig)
 
+const db = new Pool(configDatabase)
+console.log(chalk.bold.blue('Postgres database connected.'))
 export default db
