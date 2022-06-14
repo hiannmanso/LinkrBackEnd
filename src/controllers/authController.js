@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import usersRepository from "../repositories/usersRepository.js";
 import sessionsRepository from "../repositories/sessionsRepository.js";
 
-export async function singIn(req, res) {
+export async function signIn(req, res) {
     const { email, password } = req.body;
     try {
         const { rows: users } = await usersRepository.getUserByEmail(email);
