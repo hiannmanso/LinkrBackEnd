@@ -1,13 +1,12 @@
-import bcrypt from 'bcrypt';
-import db from "../config/db.js";
-
+import bcrypt from 'bcrypt'
+import db from '../db.js'
 
 async function getUserByEmail(email) {
-    return db.query(`SELECT * FROM users WHERE email=$1`, [email]);
+	return db.query(`SELECT * FROM users WHERE email=$1`, [email])
 }
 
 const usersRepository = {
-    getUserByEmail
+	getUserByEmail,
 }
 
-export default usersRepository;
+export default usersRepository
