@@ -34,5 +34,5 @@ CREATE TABLE hashtags(
 CREATE TABLE hashtagsXposts(
     id SERIAL PRIMARY KEY,
     "postID" INTEGER NOT NULL REFERENCES posts(id),
-    "hashtagID" INTEGER REFERENCES hashtags(id)
+    "hashtagID" INTEGER NOT NULL REFERENCES hashtags(id)
 );
