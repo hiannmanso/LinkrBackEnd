@@ -28,11 +28,11 @@ CREATE TABLE likes (
 
 CREATE TABLE hashtags(
     id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE hashtagsXposts(
     id SERIAL PRIMARY KEY,
     "postID" INTEGER NOT NULL REFERENCES posts(id),
-    "hashtagID" INTEGER NOT NULL REFERENCES hashtags(id)
+    "hashtag" TEXT NOT NULL REFERENCES hashtags(name)
 );
