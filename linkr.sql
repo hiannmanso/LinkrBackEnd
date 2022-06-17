@@ -15,8 +15,11 @@ CREATE TABLE sessions(
 CREATE TABLE posts(
     id SERIAL PRIMARY KEY,
     "userID" INTEGER NOT NULL REFERENCES users(id),
-    url TEXT UNIQUE NOT NULL,
-    description TEXT
+    url TEXT NOT NULL,
+    description TEXT,
+    "urlDescription" TEXT,
+    "urlTitle"  TEXT,
+    "urlImage" TEXT
 );
 
 CREATE TABLE likes (
