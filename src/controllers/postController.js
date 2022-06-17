@@ -76,7 +76,7 @@ export async function showAllPosts(req, res) {
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
 	try {
-		const query = `SELECT users.name, users.picture ,posts.url,posts.description 
+		const query = `SELECT users.name, users.picture ,posts.url,posts.description,posts."urlDescription",posts."urlTitle", posts."urlImage" 
 		FROM posts
 		JOIN users
 		ON posts."userID" = users.id WHERE posts."userID" = $1`
