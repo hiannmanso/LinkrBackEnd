@@ -1,4 +1,5 @@
 import db from '../db.js'
+import likesRepository from '../repositories/likeRepository.js'
 import getUserIdByToken from '../repositories/validSessionRepository.js'
 
 export async function newPost(req, res) {
@@ -12,12 +13,16 @@ export async function newPost(req, res) {
 		const post = await db.query(query, [url, description, userID])
 		const hashtags = verifyHashtags(description)
 
+		const postId = await db.query(
+			`SELECT id FROM posts where url =$1`,
+			[url]
+		)
+
+		await likesRepository.likePost(userID, postId.rows[0].id);
+
 		if (hashtags) {
 			//PEGANDO O POST ID
-			const postId = await db.query(
-				`SELECT id FROM posts where url =$1`,
-				[url]
-			)
+
 
 			for (const item of hashtags) {
 				if (item[0] === '#') {
@@ -65,19 +70,22 @@ export async function showAllPosts(req, res) {
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
 	try {
-		const query = `SELECT users.name as name,posts.url,posts.description 
-		FROM posts
+		const query = `SELECT users.name as name, users.picture, posts.url, posts.description, likes.quantity
+		FROM likes
+		JOIN posts
+		ON posts.id = likes."postID"
 		JOIN users
-		ON posts."userID" = users.id WHERE posts."userID" = $1`
+		ON users.id = posts."userID"
+		WHERE posts."userID" = $1`;
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
 		const timeline = await db.query(query, [userID])
 		if (timeline.rowCount === 0)
 			return res.status(422).send('User not found')
 		res.status(200).send(timeline.rows)
-	} catch (error) {}
+	} catch (error) { }
 }
 
-export async function showPostsByHastags(params) {}
+export async function showPostsByHastags(params) { }
 
 function verifyHashtags(post) {
 	let index = post.indexOf('#')
