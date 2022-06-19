@@ -6,7 +6,7 @@ import urlMetadata from 'url-metadata'
 export async function newPost(req, res) {
 	const { url, description } = req.body
 	const { token } = res.locals
-	const userID = await getUserIdByToken(token)
+	const userID = await getUserIdByToken(req, res, token)
 	const metadata = await urlMetadata(url)
 	const urlDescription = metadata.description
 	const urlTitle = metadata.title
@@ -66,7 +66,7 @@ export async function newPost(req, res) {
 
 export async function showAllPosts(req, res) {
 	try {
-		const query = `SELECT users.name, users.picture, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		const query = `SELECT users.name, users.picture, posts.id, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
 		JOIN users
 		ON users.id = posts."userID"`
@@ -81,7 +81,7 @@ export async function showAllPosts(req, res) {
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
 	try {
-		const query = `SELECT users.name, users.picture, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		const query = `SELECT users.name, users.picture, posts.id, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
 		JOIN users
 		ON users.id = posts."userID"
