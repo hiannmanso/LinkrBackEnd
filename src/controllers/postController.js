@@ -1,16 +1,28 @@
 import db from '../db.js'
 import likesRepository from '../repositories/likeRepository.js'
 import getUserIdByToken from '../repositories/validSessionRepository.js'
+import urlMetadata from 'url-metadata'
 
 export async function newPost(req, res) {
 	const { url, description } = req.body
 	const { token } = res.locals
-	const userID = await getUserIdByToken(req, res, token)
+	const userID = await getUserIdByToken(token)
+	const metadata = await urlMetadata(url)
+	const urlDescription = metadata.description
+	const urlTitle = metadata.title
+	const urlImage = metadata.image
 	try {
 		const query = `INSERT INTO posts 
-        (url, description,"userID") 
-        VALUES ($1,$2,$3)`
-		const post = await db.query(query, [url, description, userID])
+        (url, description,"userID","urlDescription","urlTitle","urlImage") 
+        VALUES ($1,$2,$3,$4,$5,$6)`
+		const post = await db.query(query, [
+			url,
+			description,
+			userID,
+			urlDescription,
+			urlTitle,
+			urlImage,
+		])
 		const hashtags = verifyHashtags(description)
 
 		const postId = await db.query(
@@ -18,7 +30,6 @@ export async function newPost(req, res) {
 			[url]
 		)
 
-		await likesRepository.likePost(userID, postId.rows[0].id);
 
 		if (hashtags) {
 			//PEGANDO O POST ID
@@ -55,10 +66,10 @@ export async function newPost(req, res) {
 
 export async function showAllPosts(req, res) {
 	try {
-		const query = `SELECT users.name as name,posts.url,posts.description 
+		const query = `SELECT users.name, users.picture, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
 		JOIN users
-		ON posts."userID" = users.id`
+		ON users.id = posts."userID"`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
 		const timeline = await db.query(query)
 		res.status(200).send(timeline.rows)
@@ -70,10 +81,8 @@ export async function showAllPosts(req, res) {
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
 	try {
-		const query = `SELECT users.name as name, users.picture, posts.url, posts.description, likes.quantity
-		FROM likes
-		JOIN posts
-		ON posts.id = likes."postID"
+		const query = `SELECT users.name, users.picture, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		FROM posts
 		JOIN users
 		ON users.id = posts."userID"
 		WHERE posts."userID" = $1`;
