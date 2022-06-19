@@ -5,7 +5,7 @@ export async function setLike(req, res) {
     const { postID: post } = req.body;
     const { token } = res.locals;
     try {
-        const user = await getUserIdByToken(token);
+        const user = await getUserIdByToken(req, res, token);
         const likes = await likesRepository.userAlreadyLiked(user, post);
         if (likes.rows[0]) {
             await likesRepository.removeLikePost(user, post);
