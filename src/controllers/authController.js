@@ -11,7 +11,7 @@ export async function signIn(req, res) {
         if (user && bcrypt.compareSync(password, user.password)) {
             const token = uuid();
             await sessionsRepository.createSession(user.id, token);
-            res.send(token);
+            res.send({ token, user: user.id });
         } else {
             res.sendStatus(401);
         }
