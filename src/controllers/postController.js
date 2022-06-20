@@ -1,5 +1,4 @@
 import db from '../db.js'
-import likesRepository from '../repositories/likeRepository.js'
 import getUserIdByToken from '../repositories/validSessionRepository.js'
 import urlMetadata from 'url-metadata'
 import postRepository from '../repositories/postRepository.js'
@@ -27,12 +26,12 @@ export async function newPost(req, res) {
 		])
 		const hashtags = verifyHashtags(description)
 
-		const postId = await db.query(`SELECT id FROM posts where url =$1`, [
-			url,
-		])
-
 		if (hashtags) {
 			//PEGANDO O POST ID
+			const postId = await db.query(
+				`SELECT id FROM posts where url =$1`,
+				[url]
+			)
 
 			for (const item of hashtags) {
 				if (item[0] === '#') {
@@ -65,10 +64,10 @@ export async function newPost(req, res) {
 
 export async function showAllPosts(req, res) {
 	try {
-		const query = `SELECT users.name, users.picture, posts.id, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
 		JOIN users
-		ON users.id = posts."userID"
+		ON posts."userID" = users.id 
 		ORDER BY posts.id DESC
 		LIMIT 20
 		`
@@ -76,6 +75,7 @@ export async function showAllPosts(req, res) {
 		const timeline = await db.query(query)
 		res.status(200).send(timeline.rows)
 	} catch (error) {
+		console.log(error)
 		res.status(400).send(error)
 	}
 }
@@ -83,11 +83,10 @@ export async function showAllPosts(req, res) {
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
 	try {
-		const query = `SELECT users.name, users.picture, posts.id, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		const query = `SELECT users.name, users.picture ,posts.url,posts.description 
 		FROM posts
 		JOIN users
-		ON users.id = posts."userID"
-		WHERE posts."userID" = $1`
+		ON posts."userID" = users.id WHERE posts."userID" = $1`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
 		const timeline = await db.query(query, [userID])
 		if (timeline.rowCount === 0)
@@ -123,26 +122,25 @@ function verifyHashtags(post) {
 	return arr
 }
 
-
 export async function toEditPost(req, res) {
-	const id = parseInt(req.params.id);
-	const { description } = req.body;
-	const { token } = res.locals;
-	const userID = await getUserIdByToken(req, res, token);
+	const id = parseInt(req.params.id)
+	const { description } = req.body
+	const { token } = res.locals
+	const userID = await getUserIdByToken(req, res, token)
 
 	if (!id) {
-		return res.sendStatus(404);
+		return res.sendStatus(404)
 	}
 	try {
-		const { rows } = await postRepository.getPublicationOwner(id);
+		const { rows } = await postRepository.getPublicationOwner(id)
 		if (rows[0].userID !== userID) {
-			return res.sendStatus(401);
+			return res.sendStatus(401)
 		}
-		await postRepository.editPost(id, description);
-		res.sendStatus(200);
+		await postRepository.editPost(id, description)
+		res.sendStatus(200)
 	} catch (err) {
-		console.log("Deu erro na edição do post", err);
-		res.sendStatus(500);
+		console.log('Deu erro na edição do post', err)
+		res.sendStatus(500)
 	}
 }
 
@@ -167,7 +165,7 @@ export async function deletePost(req, res) {
 	const { postID } = req.params
 	try {
 		const query = `DELETE FROM posts WHERE id=$1`
-    
+
 		const result = await db.query(query, [postID])
 		if (result.rowCount === 0)
 			return res.status(404).send('Not possible delete this post.')
