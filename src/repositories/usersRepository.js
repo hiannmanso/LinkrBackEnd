@@ -5,6 +5,10 @@ async function getUserByEmail(email) {
 	return db.query(`SELECT * FROM users WHERE email=$1`, [email])
 }
 
+async function getUserById(id) {
+	return db.query(`SELECT * FROM users WHERE id=$1`, [id])
+}
+
 async function createUser(name, email, picture, plainPassword) {
 	const SALT = 10
 	const passwordHash = bcrypt.hashSync(plainPassword, SALT)
@@ -18,6 +22,7 @@ async function createUser(name, email, picture, plainPassword) {
 
 const usersRepository = {
 	getUserByEmail,
+	getUserById,
 	createUser,
 }
 

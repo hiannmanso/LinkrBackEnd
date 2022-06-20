@@ -19,14 +19,14 @@ CREATE TABLE posts(
     description TEXT,
     "urlDescription" TEXT,
     "urlTitle"  TEXT,
-    "urlImage" TEXT
+    "urlImage" TEXT,
+    "quantityLikes" INTEGER DEFAULT 0
 );
 
 CREATE TABLE likes (
     id SERIAL PRIMARY KEY,
-    "userID" INTEGER NOT NULL REFERENCES users(id),
     "postID" INTEGER NOT NULL REFERENCES posts(id),
-    "createdAt" TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+    "userID" INTEGER NOT NULL REFERENCES users(id)
 );
 
 CREATE TABLE hashtags(

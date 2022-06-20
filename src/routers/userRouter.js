@@ -1,11 +1,12 @@
 import { Router } from 'express'
-import { infoUser } from '../controllers/userController.js'
+import { getUser } from '../controllers/userController.js'
+import { createUser } from '../controllers/userController.js'
+import userSchema from '../schemas/userSchema.js'
 import validateSchema from '../middlewares/schemaValidator.js'
-import tokenValidator from '../middlewares/tokenValidator.js'
 
 const userRouter = Router()
 
-userRouter.get('/users', tokenValidator, infoUser)
-//userRouter.get('/endPoint', endPoint);
+userRouter.get('/user/:userID', getUser)
+userRouter.post('/signup', validateSchema(userSchema), createUser)
 
 export default userRouter
