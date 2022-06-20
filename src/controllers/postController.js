@@ -27,15 +27,12 @@ export async function newPost(req, res) {
 		])
 		const hashtags = verifyHashtags(description)
 
-		const postId = await db.query(
-			`SELECT id FROM posts where url =$1`,
-			[url]
-		)
-
+		const postId = await db.query(`SELECT id FROM posts where url =$1`, [
+			url,
+		])
 
 		if (hashtags) {
 			//PEGANDO O POST ID
-
 
 			for (const item of hashtags) {
 				if (item[0] === '#') {
@@ -68,7 +65,7 @@ export async function newPost(req, res) {
 
 export async function showAllPosts(req, res) {
 	try {
-		const query = `SELECT users.name as name, users.picture, users.id, posts.id as "postID", posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		const query = `SELECT users.name, users.picture, posts.id, posts.url, posts.description, posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
 		JOIN users
 		ON users.id = posts."userID"
@@ -90,13 +87,13 @@ export async function showPostsByUser(req, res) {
 		FROM posts
 		JOIN users
 		ON users.id = posts."userID"
-		WHERE posts."userID" = $1`;
+		WHERE posts."userID" = $1`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
 		const timeline = await db.query(query, [userID])
 		if (timeline.rowCount === 0)
 			return res.status(422).send('User not found')
 		res.status(200).send(timeline.rows)
-	} catch (error) { }
+	} catch (error) {}
 }
 
 export async function showPostsByHastags(req, res) {
@@ -108,6 +105,7 @@ export async function showPostsByHastags(req, res) {
 		JOIN posts ON "hashtagsxposts"."postID" = posts.id
 		JOIN users ON posts."userID" = users.id
 		 WHERE "hashtag" = $1`
+
 		const result = await db.query(query, [hash])
 
 		res.status(200).send(result.rows)
@@ -124,6 +122,7 @@ function verifyHashtags(post) {
 	let arr = newstr.split(' ')
 	return arr
 }
+
 
 export async function toEditPost(req, res) {
 	const id = parseInt(req.params.id);
@@ -146,6 +145,7 @@ export async function toEditPost(req, res) {
 		res.sendStatus(500);
 	}
 }
+
 export async function getRankingHash(req, res) {
 	try {
 		const query = `SELECT COUNT(hashtagsxposts.hashtag) as count, hashtagsxposts.hashtag
@@ -166,8 +166,8 @@ export async function getRankingHash(req, res) {
 export async function deletePost(req, res) {
 	const { postID } = req.params
 	try {
-		const query = `DELETE FROM posts WHERE id = $1`
-
+		const query = `DELETE FROM posts WHERE id=$1`
+    
 		const result = await db.query(query, [postID])
 		if (result.rowCount === 0)
 			return res.status(404).send('Not possible delete this post.')
@@ -181,7 +181,7 @@ export async function deletePost(req, res) {
 // export async function deletePostHash(req, res) {
 // 	const { postID } = req.params
 // 	try {
-// 		const query = `DELETE FROM hashtagsxposts WHERE "postID" = $1`
+// 		const query = `DELETE FROM hashtagsxposts WHERE "postID"=$1`
 
 // 		const result = await db.query(query, [postID])
 // 		if (result.rowCount === 0)

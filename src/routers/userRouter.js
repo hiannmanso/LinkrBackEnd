@@ -6,7 +6,7 @@ import validateSchema from '../middlewares/schemaValidator.js'
 
 const userRouter = Router()
 
-userRouter.get('/user/:userID', getUser);
-userRouter.post('/signup', validateSchema(userSchema), createUser);
+userRouter.get('/user/:userID', getUser)
+userRouter.post('/signup', validateSchema(userSchema), createUser)
 
 export default userRouter

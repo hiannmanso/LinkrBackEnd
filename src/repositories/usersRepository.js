@@ -23,7 +23,7 @@ async function createUser(name, email, picture, plainPassword) {
 const usersRepository = {
 	getUserByEmail,
 	getUserById,
-	createUser
+	createUser,
 }
 
 export default usersRepository
