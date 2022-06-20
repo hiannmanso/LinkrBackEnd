@@ -2,6 +2,7 @@ import db from '../db.js'
 import likesRepository from '../repositories/likeRepository.js'
 import getUserIdByToken from '../repositories/validSessionRepository.js'
 import urlMetadata from 'url-metadata'
+import postRepository from '../repositories/postRepository.js'
 
 export async function newPost(req, res) {
 	const { url, description } = req.body
@@ -102,4 +103,26 @@ function verifyHashtags(post) {
 	let newstr = post.slice(index)
 	let arr = newstr.split(' ')
 	return arr
+}
+
+export async function toEditPost(req, res) {
+	const id = parseInt(req.params.id);
+	const { description } = req.body;
+	const { token } = res.locals;
+	const userID = await getUserIdByToken(req, res, token);
+
+	if (!id) {
+		return res.sendStatus(404);
+	}
+	try {
+		const { rows } = await postRepository.getPublicationOwner(id);
+		if (rows[0].userID !== userID) {
+			return res.sendStatus(401);
+		}
+		await postRepository.editPost(id, description);
+		res.sendStatus(200);
+	} catch (err) {
+		console.log("Deu erro na edição do post", err);
+		res.sendStatus(500);
+	}
 }
