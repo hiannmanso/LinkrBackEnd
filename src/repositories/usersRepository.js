@@ -10,14 +10,15 @@ async function getUserById(id) {
 }
 
 async function createUser(name, email, picture, plainPassword) {
-	const SALT = 10;
-	const passwordHash = bcrypt.hashSync(plainPassword, SALT);
-	return db.query(`
+	const SALT = 10
+	const passwordHash = bcrypt.hashSync(plainPassword, SALT)
+	return db.query(
+		`
 	  INSERT INTO users (name, picture, email, password) 
-	  VALUES ($1, $2, $3, $4)`, 
-	  [name, picture, email, passwordHash]);
+	  VALUES ($1, $2, $3, $4)`,
+		[name, picture, email, passwordHash]
+	)
 }
-  
 
 const usersRepository = {
 	getUserByEmail,

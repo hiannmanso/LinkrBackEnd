@@ -34,7 +34,7 @@ CREATE TABLE hashtags(
     name TEXT UNIQUE NOT NULL
 );
 
-CREATE TABLE hashtagsXposts(
+CREATE TABLE hashtagsxposts(
     id SERIAL PRIMARY KEY,
     "postID" INTEGER NOT NULL REFERENCES posts(id),
     "hashtag" TEXT NOT NULL REFERENCES hashtags(name)

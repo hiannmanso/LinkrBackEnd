@@ -1,7 +1,10 @@
 import { Router } from 'express'
 import {
+	deletePost,
+	getRankingHash,
 	newPost,
 	showAllPosts,
+	showPostsByHastags,
 	showPostsByUser,
 	toEditPost
 } from '../controllers/postController.js'
@@ -16,5 +19,8 @@ postRouter.post('/posts', tokenValidator, validateSchema(postSchema), newPost)
 postRouter.get('/posts', showAllPosts)
 postRouter.get('/posts/:userID', showPostsByUser)
 postRouter.put('/posts/:id', tokenValidator, validateSchema(editPostSchema), toEditPost)
+postRouter.get('/hashtag/:hashtag', showPostsByHastags)
+postRouter.get('/ranking', getRankingHash)
+postRouter.delete('/posts/:postID', deletePost)
 
 export default postRouter
