@@ -1,6 +1,8 @@
 import db from '../db.js'
 import getUserIdByToken from '../repositories/validSessionRepository.js'
 import urlMetadata from 'url-metadata'
+import postRepository from '../repositories/postRepository.js'
+
 export async function newPost(req, res) {
 	const { url, description } = req.body
 	const { token } = res.locals
@@ -62,7 +64,7 @@ export async function newPost(req, res) {
 
 export async function showAllPosts(req, res) {
 	try {
-		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage"
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
 		JOIN users
 		ON posts."userID" = users.id 
@@ -95,13 +97,14 @@ export async function showPostsByUser(req, res) {
 
 export async function showPostsByHastags(req, res) {
 	const { hashtag } = req.params
-	const hash = `#${hashtag}`
+	const hash = `#${hashtag} `
 	try {
-		const query = `SELECT users.name as name, users.id, users.picture , posts.url ,posts.description , posts."urlDescription" , posts."urlTitle" , posts."urlImage"
+		const query = `SELECT users.name as name, users.id, users.picture, posts.url, posts.description, posts."urlDescription", posts."urlTitle", posts."urlImage"
 		FROM "hashtagsxposts"
 		JOIN posts ON "hashtagsxposts"."postID" = posts.id
 		JOIN users ON posts."userID" = users.id
-		 WHERE "hashtag"= $1`
+		 WHERE "hashtag" = $1`
+
 		const result = await db.query(query, [hash])
 
 		res.status(200).send(result.rows)
@@ -117,6 +120,28 @@ function verifyHashtags(post) {
 	let newstr = post.slice(index)
 	let arr = newstr.split(' ')
 	return arr
+}
+
+export async function toEditPost(req, res) {
+	const id = parseInt(req.params.id)
+	const { description } = req.body
+	const { token } = res.locals
+	const userID = await getUserIdByToken(req, res, token)
+
+	if (!id) {
+		return res.sendStatus(404)
+	}
+	try {
+		const { rows } = await postRepository.getPublicationOwner(id)
+		if (rows[0].userID !== userID) {
+			return res.sendStatus(401)
+		}
+		await postRepository.editPost(id, description)
+		res.sendStatus(200)
+	} catch (err) {
+		console.log('Deu erro na edição do post', err)
+		res.sendStatus(500)
+	}
 }
 
 export async function getRankingHash(req, res) {
