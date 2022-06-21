@@ -7,7 +7,6 @@ export async function newPost(req, res) {
 	const { url, description } = req.body
 	const { token } = res.locals
 	const userID = await getUserIdByToken(req, res, token)
-	console.log(token)
 	const metadata = await urlMetadata(url)
 	const urlDescription = metadata.description
 	const urlTitle = metadata.title
@@ -191,5 +190,18 @@ export async function deletePostHash(req, res) {
 	} catch (error) {
 		console.log(error)
 		res.status(400).send(error)
+	}
+}
+
+export async function getPost(req, res) {
+	const { id } = req.params;
+	try {
+		const { rows } = await postRepository.getPostById(id);
+		const [row] = rows;
+		console.log(row, 'aqui');
+		res.send(row);
+	} catch (err) {
+		console.log("Error in getPost", err);
+		res.sendStatus(500);
 	}
 }
