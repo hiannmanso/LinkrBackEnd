@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
 	deletePost,
+	getPost,
 	getRankingHash,
 	newPost,
 	showAllPosts,
@@ -22,5 +23,6 @@ postRouter.put('/posts/:id', tokenValidator, validateSchema(editPostSchema), toE
 postRouter.get('/hashtag/:hashtag', showPostsByHastags)
 postRouter.get('/ranking', getRankingHash)
 postRouter.delete('/posts/:postID', deletePost)
+postRouter.get('/post/:id', getPost);
 
 export default postRouter

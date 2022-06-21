@@ -19,18 +19,14 @@ export async function setLike(req, res) {
     }
 }
 
-// export async function removeLike(req, res) {
-//     const { postID: post } = req.body;
-//     const { token } = res.locals;
-//     try {
-//         const user = await getUserIdByToken(req, res, token);
-//         const { rows } = await likesRepository.removeLikePost(user, post);
-//         if (rows === 0) {
-//             res.sendStatus(400);
-//         }
-//         res.sendStatus(200);
-//     } catch (err) {
-//         console.log("Deu erro na remoção do like", err);
-//         return res.sendStatus(500);
-//     }
-// }
+export async function getUsersWhoLiked(req, res) {
+    // const { id } = req.params;
+    try {
+        const { rows } = await likesRepository.getPublicationTheUserLike();
+        console.log(rows);
+        res.send(rows);
+    } catch (err) {
+        console.log("Error in getUsersWhoLiked", err);
+        res.sendStatus(500);
+    }
+}
