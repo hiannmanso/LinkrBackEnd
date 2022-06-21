@@ -12,10 +12,11 @@ export async function newPost(req, res) {
 	const urlDescription = metadata.description
 	const urlTitle = metadata.title
 	const urlImage = metadata.image
+	const date = new Date()
 	try {
 		const query = `INSERT INTO posts 
-        (url, description,"userID","urlDescription","urlTitle","urlImage") 
-        VALUES ($1,$2,$3,$4,$5,$6)`
+        (url, description,"userID","urlDescription","urlTitle","urlImage","date") 
+        VALUES ($1,$2,$3,$4,$5,$6,$7)`
 		const post = await db.query(query, [
 			url,
 			description,
@@ -23,14 +24,15 @@ export async function newPost(req, res) {
 			urlDescription,
 			urlTitle,
 			urlImage,
+			date,
 		])
 		const hashtags = verifyHashtags(description)
 
 		if (hashtags) {
 			//PEGANDO O POST ID
 			const postId = await db.query(
-				`SELECT id FROM posts where url =$1`,
-				[url]
+				`SELECT id FROM posts where url =$1 AND description=$2 AND date =$3 `,
+				[url, description, date]
 			)
 
 			for (const item of hashtags) {
@@ -66,8 +68,7 @@ export async function showAllPosts(req, res) {
 	try {
 		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
-		JOIN users
-		ON posts."userID" = users.id 
+		JOIN users ON posts."userID" = users.id 
 		ORDER BY posts.id DESC
 		LIMIT 20
 		`
@@ -83,10 +84,10 @@ export async function showAllPosts(req, res) {
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
 	try {
-		const query = `SELECT users.name, users.picture ,posts.url,posts.description 
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM posts
-		JOIN users
-		ON posts."userID" = users.id WHERE posts."userID" = $1`
+		JOIN users ON posts."userID" = users.id 
+		WHERE posts."userID" = $1`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
 		const timeline = await db.query(query, [userID])
 		if (timeline.rowCount === 0)
@@ -97,15 +98,16 @@ export async function showPostsByUser(req, res) {
 
 export async function showPostsByHastags(req, res) {
 	const { hashtag } = req.params
-	const hash = `#${hashtag} `
+	const hash = `'#${hashtag}'`
 	try {
-		const query = `SELECT users.name as name, users.id, users.picture, posts.url, posts.description, posts."urlDescription", posts."urlTitle", posts."urlImage"
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url, posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
 		FROM "hashtagsxposts"
 		JOIN posts ON "hashtagsxposts"."postID" = posts.id
 		JOIN users ON posts."userID" = users.id
-		 WHERE "hashtag" = $1`
-
-		const result = await db.query(query, [hash])
+		WHERE hashtag = ${hash}
+	
+		`
+		const result = await db.query(query)
 
 		res.status(200).send(result.rows)
 	} catch (error) {
@@ -176,18 +178,18 @@ export async function deletePost(req, res) {
 		res.status(400).send(error)
 	}
 }
-// export async function deletePostHash(req, res) {
-// 	const { postID } = req.params
-// 	try {
-// 		const query = `DELETE FROM hashtagsxposts WHERE "postID"=$1`
+export async function deletePostHash(req, res) {
+	const { postID } = req.params
+	try {
+		const query = `DELETE FROM hashtagsxposts WHERE "postID"=$1`
 
-// 		const result = await db.query(query, [postID])
-// 		if (result.rowCount === 0)
-// 			return res.status(404).send('Not possible delete this post.')
+		const result = await db.query(query, [postID])
+		if (result.rowCount === 0)
+			return res.status(404).send('Not possible delete this post.')
 
-// 		res.status(200).send(result)
-// 	} catch (error) {
-// 		console.log(error)
-// 		res.status(400).send(error)
-// 	}
-// }
+		res.status(200).send(result)
+	} catch (error) {
+		console.log(error)
+		res.status(400).send(error)
+	}
+}
