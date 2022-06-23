@@ -4,7 +4,7 @@ async function likePost(user, post) {
 
     const { rows } = await db.query(`SELECT "quantityLikes" FROM posts WHERE id=$1`, [post]);
     const [likes] = rows;
-    db.query(`UPDATE posts SET "quantityLikes"=$1 + 1 WHERE "id"=$2`, [likes.quantityLikes, post]);
+    await db.query(`UPDATE posts SET "quantityLikes"=$1 + 1 WHERE "id"=$2`, [likes.quantityLikes, post]);
     return db.query(`INSERT INTO likes ("userID", "postID") VALUES ($1,$2)`, [user, post]);
 }
 
@@ -26,11 +26,19 @@ async function getPublicationTheUserLike() {
     JOIN users ON users.id = likes."userID"`);
 }
 
+async function getUsersLikesOnPost(id) {
+    return db.query(`SELECT users.name
+    FROM likes
+    JOIN users ON users.id = likes."userID"
+    WHERE likes."postID" = $1`, [id]);
+}
+
 const likesRepository = {
     likePost,
     removeLikePost,
     userAlreadyLiked,
-    getPublicationTheUserLike
+    getPublicationTheUserLike,
+    getUsersLikesOnPost
 };
 
 export default likesRepository;
