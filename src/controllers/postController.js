@@ -65,11 +65,16 @@ export async function newPost(req, res) {
 
 export async function showAllPosts(req, res) {
 	try {
-		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes", posts."quantityComments",posts.reposts, posts.date, posts.reposts, posts."repUserID", posts."repUserNAME"
 		FROM posts
 		JOIN users ON posts."userID" = users.id 
-		ORDER BY posts.id DESC
-		LIMIT 20
+		UNION ALL 
+		SELECT u2.name as name, u2.id, u2.picture ,p1.id as "postID",p1.url,p1.description ,p1."urlDescription",p1."urlTitle", p1."urlImage", p1."quantityLikes", p1."quantityComments",p1.reposts, p1.date, p1.reposts, u1.id, u1.name
+		FROM reposts
+		JOIN posts p1 ON reposts."postID" = p1.id
+		JOIN users u1 ON reposts."repostUserID" = u1.id
+		JOIN users u2 ON p1."userID" = u2.id
+		ORDER BY date DESC
 		`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
 		const timeline = await db.query(query)
@@ -83,7 +88,7 @@ export async function showAllPosts(req, res) {
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
 	try {
-		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes",posts."quantityComments",posts.reposts
 		FROM posts
 		JOIN users ON posts."userID" = users.id 
 		WHERE posts."userID" = $1`
@@ -92,7 +97,7 @@ export async function showPostsByUser(req, res) {
 		if (timeline.rowCount === 0)
 			return res.status(422).send('User not found')
 		res.status(200).send(timeline.rows)
-	} catch (error) { }
+	} catch (error) {}
 }
 
 export async function showPostsByHastags(req, res) {
@@ -133,7 +138,6 @@ export async function toEditPost(req, res) {
 		return res.sendStatus(404)
 	}
 	const hashtags = verifyHashtags(description)
-
 
 	try {
 		if (hashtags) {
@@ -220,13 +224,53 @@ export async function deletePostHash(req, res) {
 }
 
 export async function getPost(req, res) {
-	const { id } = req.params;
+	const { id } = req.params
 	try {
-		const { rows } = await postRepository.getPostById(id);
-		const [row] = rows;
-		res.send(row);
+		const { rows } = await postRepository.getPostById(id)
+		const [row] = rows
+		console.log(row, 'aqui')
+		res.send(row)
 	} catch (err) {
-		console.log("Error in getPost", err);
-		res.sendStatus(500);
+		console.log('Error in getPost', err)
+		res.sendStatus(500)
+	}
+}
+
+export async function repostPOST(req, res) {
+	const { postID, repostUserID } = req.body
+	try {
+		const query = `INSERT INTO reposts ("postID","repostUserID") VALUES ($1,$2)`
+		const result = await db.query(query, [postID, repostUserID])
+
+		const getInfosPost = await db.query(
+			`SELECT * FROM posts where id =$1`,
+			[postID]
+		)
+		const query3 = `UPDATE posts SET "reposts" = $1 + 1 WHERE id=$2`
+		const result3 = await db.query(query3, [
+			getInfosPost.rows[0].reposts,
+			postID,
+		])
+
+		res.sendStatus(200)
+	} catch (error) {
+		console.log(error)
+		res.status(400).send(error)
+	}
+}
+export async function repostGET(req, res) {
+	try {
+		const query = `SELECT u1.name as "repostUsername", u1.id as "repostuserID", u2.name as name, u2.id, u2.picture ,posts.id as "postID",posts.url, posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes", posts.reposts, posts.date
+		FROM reposts
+		JOIN posts ON reposts."postID" = posts.id
+		JOIN users u1 ON reposts."repostUserID" = u1.id
+		JOIN users u2 ON posts."userID" = u2.id
+		`
+		const result = await db.query(query)
+
+		res.status(200).send(result.rows)
+	} catch (error) {
+		console.log(error)
+		res.status(400).send(error)
 	}
 }

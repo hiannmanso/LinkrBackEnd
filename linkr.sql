@@ -21,7 +21,12 @@ CREATE TABLE posts(
     "urlTitle"  TEXT,
     "urlImage" TEXT,
     "quantityLikes" INTEGER DEFAULT 0,
+    "quantityComments" INTEGER DEFAULT 0,
+    "reposts" INTEGER DEFAULT 0 ,
     date TIMESTAMP DEFAULT NOW()
+    "repUserID" INTEGER DEFAULT NULL,
+    "repUserNAME" TEXT DEFAULT NULL,
+
 
 );
 
@@ -43,8 +48,24 @@ CREATE TABLE hashtags(
     name TEXT UNIQUE NOT NULL
 );
 
+
+CREATE TABLE comments(
+    id SERIAL PRIMARY KEY,
+    "postID" INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    "userID" INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    "text" TEXT NOT NULL 
+)
+
+CREATE TABLE reposts(
+    id SERIAL PRIMARY KEY,
+    "postID" INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    "repostUserID" INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    "date" TIMESTAMP DEFAULT NOW()
+)
+
 CREATE TABLE followers(
     id SERIAL PRIMARY KEY,
     following INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     followed INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
+

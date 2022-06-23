@@ -12,13 +12,13 @@ async function getPublicationOwner(postID) {
 }
 
 async function getPostById(id) {
-    return db.query(`SELECT * FROM posts WHERE id=$1`, [id]);
+	return db.query(`SELECT * FROM posts WHERE id=$1`, [id])
 }
 
 const postRepository = {
-    editPost,
-    getPublicationOwner,
-    getPostById
-};
+	editPost,
+	getPublicationOwner,
+	getPostById,
+}
 
 export default postRepository

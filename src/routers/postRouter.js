@@ -9,6 +9,8 @@ import {
 	showPostsByHastags,
 	showPostsByUser,
 	toEditPost,
+	repostPOST,
+	repostGET,
 } from '../controllers/postController.js'
 import validateSchema from '../middlewares/schemaValidator.js'
 import tokenValidator from '../middlewares/tokenValidator.js'
@@ -29,6 +31,8 @@ postRouter.put(
 postRouter.get('/hashtag/:hashtag', showPostsByHastags)
 postRouter.get('/ranking', getRankingHash)
 postRouter.delete('/posts/:postID', deletePost)
-postRouter.get('/post/:id', getPost);
+postRouter.get('/post/:id', getPost)
+postRouter.post('/repost', repostPOST)
+postRouter.get('/repost', repostGET)
 
 export default postRouter
