@@ -137,7 +137,32 @@ export async function toEditPost(req, res) {
 	if (!id) {
 		return res.sendStatus(404)
 	}
+	const hashtags = verifyHashtags(description)
+
 	try {
+		if (hashtags) {
+			for (const item of hashtags) {
+				if (item[0] === '#') {
+					//VERIFICA SE JA TEM ESSA HASHTAG NA TABLE
+					const verifyDatabase = await db.query(
+						`SELECT * FROM hashtags WHERE name =$1`,
+						[item]
+					)
+					if (verifyDatabase.rowCount === 0) {
+						//ADICIONA AO HASHTAGS
+						await db.query(
+							`INSERT INTO hashtags (name) VALUES($1) `,
+							[item]
+						)
+					}
+					//ADICIONA AO HASHTAGXPOST
+					await db.query(
+						`INSERT INTO hashtagsxposts ("postID",hashtag) VALUES ($1,$2)`,
+						[id, item]
+					)
+				}
+			}
+		}
 		const { rows } = await postRepository.getPublicationOwner(id)
 		if (rows[0].userID !== userID) {
 			return res.sendStatus(401)
