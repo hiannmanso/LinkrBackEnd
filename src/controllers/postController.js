@@ -92,7 +92,7 @@ export async function showPostsByUser(req, res) {
 		if (timeline.rowCount === 0)
 			return res.status(422).send('User not found')
 		res.status(200).send(timeline.rows)
-	} catch (error) {}
+	} catch (error) { }
 }
 
 export async function showPostsByHastags(req, res) {
@@ -132,7 +132,33 @@ export async function toEditPost(req, res) {
 	if (!id) {
 		return res.sendStatus(404)
 	}
+	const hashtags = verifyHashtags(description)
+
+
 	try {
+		if (hashtags) {
+			for (const item of hashtags) {
+				if (item[0] === '#') {
+					//VERIFICA SE JA TEM ESSA HASHTAG NA TABLE
+					const verifyDatabase = await db.query(
+						`SELECT * FROM hashtags WHERE name =$1`,
+						[item]
+					)
+					if (verifyDatabase.rowCount === 0) {
+						//ADICIONA AO HASHTAGS
+						await db.query(
+							`INSERT INTO hashtags (name) VALUES($1) `,
+							[item]
+						)
+					}
+					//ADICIONA AO HASHTAGXPOST
+					await db.query(
+						`INSERT INTO hashtagsxposts ("postID",hashtag) VALUES ($1,$2)`,
+						[id, item]
+					)
+				}
+			}
+		}
 		const { rows } = await postRepository.getPublicationOwner(id)
 		if (rows[0].userID !== userID) {
 			return res.sendStatus(401)
@@ -198,7 +224,6 @@ export async function getPost(req, res) {
 	try {
 		const { rows } = await postRepository.getPostById(id);
 		const [row] = rows;
-		console.log(row, 'aqui');
 		res.send(row);
 	} catch (err) {
 		console.log("Error in getPost", err);

@@ -20,14 +20,25 @@ export async function setLike(req, res) {
 }
 
 export async function getUsersWhoLiked(req, res) {
-    // const { id } = req.params;
-    try {
-        const { rows } = await likesRepository.getPublicationTheUserLike();
-        console.log(rows);
-        res.send(rows);
-    } catch (err) {
-        console.log("Error in getUsersWhoLiked", err);
-        res.sendStatus(500);
-    }
+	try {
+		const { rows } = await likesRepository.getPublicationTheUserLike();
+		res.send(rows);
+	} catch (err) {
+		console.log("Error in getUsersWhoLiked", err);
+		res.sendStatus(500);
+	}
 }
 
+export async function getUsersLikedOnPost(req, res) {
+	const { id } = req.params;
+	if (!id) {
+		return res.sendStatus(400);
+	}
+	try {
+		const { rows } = await likesRepository.getUsersLikesOnPost(id);
+		res.send(rows);
+	} catch (err) {
+		console.log("Error in get users liked on post", err);
+		res.sendStatus(500);
+	}
+}
