@@ -23,9 +23,9 @@ CREATE TABLE posts(
     "quantityLikes" INTEGER DEFAULT 0,
     "quantityComments" INTEGER DEFAULT 0,
     "reposts" INTEGER DEFAULT 0 ,
-    date TIMESTAMP DEFAULT NOW()
+    date TIMESTAMP DEFAULT NOW(),
     "repUserID" INTEGER DEFAULT NULL,
-    "repUserNAME" TEXT DEFAULT NULL,
+    "repUserNAME" TEXT DEFAULT NULL
 
 
 );
@@ -37,15 +37,15 @@ CREATE TABLE likes (
 );
 
 
+CREATE TABLE hashtags(
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
+);
+
 CREATE TABLE hashtagsxposts(
     id SERIAL PRIMARY KEY,
     "postID" INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     "hashtag" TEXT NOT NULL REFERENCES hashtags(name)
-);
-
-CREATE TABLE hashtags(
-    id SERIAL PRIMARY KEY,
-    name TEXT UNIQUE NOT NULL
 );
 
 
