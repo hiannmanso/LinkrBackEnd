@@ -97,6 +97,7 @@ export async function showAllPosts(req, res) {
 
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
+	const { token } = res.locals
 	const { limit, offset } = req.query
 	console.log(limit, offset)
 	try {
@@ -138,6 +139,7 @@ export async function showPostsByUser(req, res) {
 }
 
 export async function showPostsByHastags(req, res) {
+	const { token } = res.locals
 	const { hashtag } = req.params
 	const { limit, offset } = req.query
 	const hash = `'#${hashtag}'`
@@ -164,7 +166,7 @@ export async function showPostsByHastags(req, res) {
 
 		res.status(200).send(result.rows)
 	} catch (error) {
-		console.log(error)
+		// console.log(error)
 		res.status(400).send(error)
 	}
 }
