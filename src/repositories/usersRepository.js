@@ -6,7 +6,7 @@ async function getUserByEmail(email) {
 }
 
 async function getUserById(id) {
-	return db.query(`SELECT * FROM users WHERE id=$1`, [id])
+	return db.query(`SELECT id, name, picture FROM users WHERE id=$1`, [id])
 }
 
 async function createUser(name, email, picture, plainPassword) {
