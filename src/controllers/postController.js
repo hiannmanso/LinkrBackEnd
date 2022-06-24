@@ -6,13 +6,13 @@ import postRepository from '../repositories/postRepository.js'
 export async function newPost(req, res) {
 	const { url, description } = req.body
 	const { token } = res.locals
-	const userID = await getUserIdByToken(req, res, token)
-	const metadata = await urlMetadata(url)
-	const urlDescription = metadata.description
-	const urlTitle = metadata.title
-	const urlImage = metadata.image
 	const date = new Date()
 	try {
+		const metadata = await urlMetadata(url)
+		const urlDescription = metadata.description
+		const urlTitle = metadata.title
+		const urlImage = metadata.image
+		const userID = await getUserIdByToken(req, res, token)
 		const query = `INSERT INTO posts 
         (url, description,"userID","urlDescription","urlTitle","urlImage","date") 
         VALUES ($1,$2,$3,$4,$5,$6,$7)`
@@ -142,7 +142,6 @@ export async function toEditPost(req, res) {
 	const id = parseInt(req.params.id)
 	const { description } = req.body
 	const { token } = res.locals
-	const userID = await getUserIdByToken(req, res, token)
 
 	if (!id) {
 		return res.sendStatus(404)
@@ -150,6 +149,7 @@ export async function toEditPost(req, res) {
 	const hashtags = verifyHashtags(description)
 
 	try {
+		const userID = await getUserIdByToken(req, res, token)
 		if (hashtags) {
 			for (const item of hashtags) {
 				if (item[0] === '#') {

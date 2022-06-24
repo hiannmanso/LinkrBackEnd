@@ -7,10 +7,8 @@ export async function createFollow(req, res) {
 	const { token } = res.locals
 	try {
 		const user = await getUserIdByToken(req, res, token)
-		console.log(followed, user, token)
 		const { rows } = await followRepository.verifyFollow(user, followed)
 		const [row] = rows
-		console.log(row)
 		if (row) {
 			await followRepository.unfollow(user, followed)
 			return res.sendStatus(200)
