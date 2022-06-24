@@ -64,20 +64,27 @@ export async function newPost(req, res) {
 }
 
 export async function showAllPosts(req, res) {
+	const { token } = res.locals;
 	try {
+		const user = await getUserIdByToken(req, res, token);
+		console.log(user);
 		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes", posts."quantityComments",posts.reposts, posts.date, posts.reposts, posts."repUserID", posts."repUserNAME"
 		FROM posts
-		JOIN users ON posts."userID" = users.id 
+		JOIN users ON posts."userID" = users.id
+		JOIN followers f ON f.followed=users.id
+		WHERE f.following=$1
 		UNION ALL 
 		SELECT u2.name as name, u2.id, u2.picture ,p1.id as "postID",p1.url,p1.description ,p1."urlDescription",p1."urlTitle", p1."urlImage", p1."quantityLikes", p1."quantityComments",p1.reposts, p1.date, p1.reposts, u1.id, u1.name
 		FROM reposts
 		JOIN posts p1 ON reposts."postID" = p1.id
 		JOIN users u1 ON reposts."repostUserID" = u1.id
 		JOIN users u2 ON p1."userID" = u2.id
+		JOIN followers f ON f.followed=u2.id
+		WHERE f.following=$1
 		ORDER BY date DESC
 		`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
-		const timeline = await db.query(query)
+		const timeline = await db.query(query, [user]);
 		res.status(200).send(timeline.rows)
 	} catch (error) {
 		console.log(error)
@@ -97,7 +104,7 @@ export async function showPostsByUser(req, res) {
 		if (timeline.rowCount === 0)
 			return res.status(422).send('User not found')
 		res.status(200).send(timeline.rows)
-	} catch (error) {}
+	} catch (error) { }
 }
 
 export async function showPostsByHastags(req, res) {
@@ -228,7 +235,6 @@ export async function getPost(req, res) {
 	try {
 		const { rows } = await postRepository.getPostById(id)
 		const [row] = rows
-		console.log(row, 'aqui')
 		res.send(row)
 	} catch (err) {
 		console.log('Error in getPost', err)

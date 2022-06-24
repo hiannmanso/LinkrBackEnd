@@ -20,7 +20,7 @@ import postSchema from '../schemas/postSchema.js'
 const postRouter = Router()
 
 postRouter.post('/posts', tokenValidator, validateSchema(postSchema), newPost)
-postRouter.get('/posts', showAllPosts)
+postRouter.get('/posts', tokenValidator, showAllPosts)
 postRouter.get('/posts/:userID', showPostsByUser)
 postRouter.put(
 	'/posts/:id',
