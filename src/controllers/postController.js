@@ -65,6 +65,8 @@ export async function newPost(req, res) {
 
 export async function showAllPosts(req, res) {
 	const { token } = res.locals;
+	const { limit, offset } = req.query
+	console.log(limit, offset)
 	try {
 		const user = await getUserIdByToken(req, res, token);
 		console.log(user);
@@ -82,9 +84,10 @@ export async function showAllPosts(req, res) {
 		JOIN followers f ON f.followed=u2.id
 		WHERE f.following=$1
 		ORDER BY date DESC
+		LIMIT $2 OFFSET $3
 		`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
-		const timeline = await db.query(query, [user]);
+		const timeline = await db.query(query, [user, limit, offset])
 		res.status(200).send(timeline.rows)
 	} catch (error) {
 		console.log(error)
