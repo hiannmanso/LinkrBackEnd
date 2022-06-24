@@ -64,12 +64,12 @@ export async function newPost(req, res) {
 }
 
 export async function showAllPosts(req, res) {
-	const { token } = res.locals;
+	const { token } = res.locals
 	const { limit, offset } = req.query
 	console.log(limit, offset)
 	try {
-		const user = await getUserIdByToken(req, res, token);
-		console.log(user);
+		const user = await getUserIdByToken(req, res, token)
+		console.log(user)
 		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes", posts."quantityComments",posts.reposts, posts.date, posts.reposts, posts."repUserID", posts."repUserNAME"
 		FROM posts
 		JOIN users ON posts."userID" = users.id
@@ -97,31 +97,70 @@ export async function showAllPosts(req, res) {
 
 export async function showPostsByUser(req, res) {
 	const { userID } = req.params
+	const { limit, offset } = req.query
+	console.log(limit, offset)
 	try {
-		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes",posts."quantityComments",posts.reposts
+		const user = await getUserIdByToken(req, res, token)
+		console.log(user)
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes", posts."quantityComments",posts.reposts, posts.date, posts.reposts, posts."repUserID", posts."repUserNAME"
 		FROM posts
 		JOIN users ON posts."userID" = users.id 
-		WHERE posts."userID" = $1`
+		WHERE posts."userID" = $3
+		UNION ALL 
+		SELECT u2.name as name, u2.id, u2.picture ,p1.id as "postID",p1.url,p1.description ,p1."urlDescription",p1."urlTitle", p1."urlImage", p1."quantityLikes", p1."quantityComments",p1.reposts, p1.date, p1.reposts, u1.id, u1.name
+		FROM reposts
+		JOIN posts p1 ON reposts."postID" = p1.id
+		JOIN users u1 ON reposts."repostUserID" = u1.id
+		JOIN users u2 ON p1."userID" = u2.id
+		WHERE p1."userID" =$3
+		ORDER BY date DESC
+		LIMIT $1 OFFSET $2
+		`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
-		const timeline = await db.query(query, [userID])
-		if (timeline.rowCount === 0)
-			return res.status(422).send('User not found')
+		const timeline = await db.query(query, [limit, offset, userID])
 		res.status(200).send(timeline.rows)
-	} catch (error) { }
+	} catch (error) {
+		console.log(error)
+		res.status(400).send(error)
+	}
+
+	// try {
+	// 	const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes",posts."quantityComments",posts.reposts
+	// 	FROM posts
+	// 	JOIN users ON posts."userID" = users.id
+	// 	WHERE posts."userID" = $1`
+	// 	//PRECISA COLOCAR OS LIKES NESSA QUERY
+	// 	const timeline = await db.query(query, [userID])
+	// 	if (timeline.rowCount === 0)
+	// 		return res.status(422).send('User not found')
+	// 	res.status(200).send(timeline.rows)
+	// } catch (error) {}
 }
 
 export async function showPostsByHastags(req, res) {
 	const { hashtag } = req.params
+	const { limit, offset } = req.query
 	const hash = `'#${hashtag}'`
 	try {
-		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url, posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes"
-		FROM "hashtagsxposts"
-		JOIN posts ON "hashtagsxposts"."postID" = posts.id
-		JOIN users ON posts."userID" = users.id
+		const user = await getUserIdByToken(req, res, token)
+		console.log(user)
+		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes", posts."quantityComments",posts.reposts, posts.date, posts.reposts, posts."repUserID", posts."repUserNAME"
+		FROM posts
+		JOIN users ON posts."userID" = users.id 
+		JOIN hashtagsxposts on posts.id = hashtagsxposts."postID"
 		WHERE hashtag = ${hash}
-	
+		UNION ALL 
+		SELECT u2.name as name, u2.id, u2.picture ,p1.id as "postID",p1.url,p1.description ,p1."urlDescription",p1."urlTitle", p1."urlImage", p1."quantityLikes", p1."quantityComments",p1.reposts, p1.date, p1.reposts, u1.id, u1.name
+		FROM reposts
+		JOIN posts p1 ON reposts."postID" = p1.id
+		JOIN users u1 ON reposts."repostUserID" = u1.id
+		JOIN users u2 ON p1."userID" = u2.id
+		JOIN hashtagsxposts on p1.id = hashtagsxposts."postID"
+		WHERE hashtag = ${hash}
+		ORDER BY date DESC
+		LIMIT $1 OFFSET $2
 		`
-		const result = await db.query(query)
+		const result = await db.query(query, [limit, offset])
 
 		res.status(200).send(result.rows)
 	} catch (error) {
