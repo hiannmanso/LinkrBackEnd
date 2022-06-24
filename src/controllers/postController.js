@@ -64,6 +64,8 @@ export async function newPost(req, res) {
 }
 
 export async function showAllPosts(req, res) {
+	const { limit, offset } = req.query
+	console.log(limit, offset)
 	try {
 		const query = `SELECT users.name as name, users.id, users.picture ,posts.id as "postID",posts.url,posts.description ,posts."urlDescription",posts."urlTitle", posts."urlImage", posts."quantityLikes", posts."quantityComments",posts.reposts, posts.date, posts.reposts, posts."repUserID", posts."repUserNAME"
 		FROM posts
@@ -75,9 +77,10 @@ export async function showAllPosts(req, res) {
 		JOIN users u1 ON reposts."repostUserID" = u1.id
 		JOIN users u2 ON p1."userID" = u2.id
 		ORDER BY date DESC
+		LIMIT $1 OFFSET $2
 		`
 		//PRECISA COLOCAR OS LIKES NESSA QUERY
-		const timeline = await db.query(query)
+		const timeline = await db.query(query, [limit, offset])
 		res.status(200).send(timeline.rows)
 	} catch (error) {
 		console.log(error)
