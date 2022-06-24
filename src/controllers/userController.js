@@ -1,5 +1,6 @@
 import usersRepository from '../repositories/usersRepository.js'
 import db from '../db.js'
+import getUserIdByToken from '../repositories/validSessionRepository.js'
 
 export async function getUser(req, res) {
 	const { userID } = req.params
@@ -51,13 +52,20 @@ export async function infoUser(req, res) {
 }
 export async function searchUser(req, res) {
 	const { userName } = req.params
+	const { token } = res.locals;
 
 	console.log(userName)
 	try {
+		const user = await getUserIdByToken(req, res, token);
 		const query = `SELECT users.id,users.name,users.picture 
-		  FROM users 
-		  WHERE name LIKE $1`
-		const result = await db.query(query, [`%${userName}%`])
+		FROM users 
+		JOIN followers f ON f.following=users.id
+		WHERE name ILIKE $1 and f.following=$2
+		UNION
+		SELECT users.id,users.name,users.picture 
+		FROM users
+		WHERE name ILIKE $1`
+		const result = await db.query(query, [`%${userName}%`, user])
 
 		res.status(200).send(result.rows)
 	} catch (error) {
