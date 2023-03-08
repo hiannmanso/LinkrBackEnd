@@ -1,6 +1,6 @@
 import pg from 'pg'
 import dotenv from 'dotenv'
-import chalk from 'chalk'
+
 
 dotenv.config()
 
@@ -17,5 +17,5 @@ if (process.env.MODE === 'PROD') {
 }
 
 const db = new Pool(configDatabase)
-console.log(chalk.bold.blue('Postgres database connected.'))
+console.log('Postgres database connected.')
 export default db
